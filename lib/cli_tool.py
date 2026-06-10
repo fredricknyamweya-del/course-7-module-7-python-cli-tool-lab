@@ -1,48 +1,35 @@
-# cli_tool.py
+import sys
+from lib.models import Task, User
 
-import argparse
-from models import Task, User
-
-# Global dictionary to store users and their tasks
 users = {}
 
-# TODO: Implement function to add a task for a user
-def add_task(args):
-    # - Check if the user exists, if not, create one
-    # - Create a new Task with the given title
-    # - Add the task to the user's task list
-    pass
+def add_task(user_name: str, task_name: str):
+    if user_name not in users:
+        users[user_name] = User(user_name)
+    task = Task(task_name)
+    users[user_name].add_task(task)
+    print(f"📌 Task '{task_name}' added to {user_name}.")
 
-# TODO: Implement function to mark a task as complete
-def complete_task(args):
-    # - Look up the user by name
-    # - Look up the task by title
-    # - Mark the task as complete
-    # - Print appropriate error messages if not found
-    pass
-
-# CLI entry point
-def main():
-    parser = argparse.ArgumentParser(description="Task Manager CLI")
-    subparsers = parser.add_subparsers()
-
-    # Subparser for adding tasks
-    add_parser = subparsers.add_parser("add-task", help="Add a task for a user")
-    add_parser.add_argument("user")
-    add_parser.add_argument("title")
-    add_parser.set_defaults(func=add_task)
-
-    # Subparser for completing tasks
-    complete_parser = subparsers.add_parser("complete-task", help="Complete a user's task")
-    complete_parser.add_argument("user")
-    complete_parser.add_argument("title")
-    complete_parser.set_defaults(func=complete_task)
-
-    args = parser.parse_args()
-    if hasattr(args, "func"):
-        args.func(args)
-    else:
-        parser.print_help()
+def complete_task(user_name: str, task_name: str):
+    if user_name in users:
+        for task in users[user_name].tasks:
+            if task.name == task_name:
+                task.complete()
+                print(f"✅ Task '{task_name}' completed.")
+                return
+    print(f"⚠️ Task '{task_name}' not found for {user_name}.")
 
 if __name__ == "__main__":
-    main()
+    args = sys.argv[1:]
+    if len(args) < 3:
+        print("Usage: python -m lib.cli_tool <command> <user> <task>")
+        sys.exit(1)
+
+    command, user_name, task_name = args[0], args[1], args[2]
+
+    if command == "add-task":
+        add_task(user_name, task_name)
+    elif command == "complete-task":
+        complete_task(user_name, task_name)
+    else:
+        print(f"Unknown command: {command}")
